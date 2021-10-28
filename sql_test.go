@@ -212,3 +212,36 @@ func TestExecSqlPrefarestatement(t *testing.T) {
 	}
 
 }
+
+func TestTransaction(t *testing.T) {
+	db := GetConnection()
+	defer db.Close()
+
+	ctx := context.Background()
+	tx, err := db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	// do transactionctx
+	for i := 0; i < 10; i++ {
+		email := "email" + strconv.Itoa(i) + "2@email.com"
+		comment := "ini komentar"
+		script := "INSERT INTO comments(email, comment) VALUES(?, ?)"
+		result, err := tx.ExecContext(ctx, script, email, comment)
+		if err != nil {
+			panic(err)
+		}
+		insertId, err := result.LastInsertId()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Success insert new comment with id : ", insertId)
+	}
+
+	// err = tx.Rollback()
+	err = tx.Commit()
+	if err != nil {
+		panic(err)
+	}
+}
